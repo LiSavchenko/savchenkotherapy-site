@@ -40,7 +40,14 @@ section{padding:48px 0 20px}
 .topics h3{font-size:1.1rem;margin:0 0 .3em}
 .topics p{margin:0;font-size:.95rem}
 .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:20px}
-.gallery figure{margin:0;aspect-ratio:4/3;background:var(--white);border:2px dashed var(--sage);border-radius:12px;display:grid;place-items:center;color:#5d6f62;font-size:.9rem;text-align:center;padding:10px}
+.gallery a{display:block;background:var(--white);border-radius:16px;overflow:hidden;color:var(--ink);text-decoration:none;transition:transform .2s}
+.gallery a:hover{transform:translateY(-3px)}
+.gallery img{display:block;width:100%;height:auto;border-bottom:1px solid var(--mist)}
+.gallery span{display:block;padding:14px 18px;font-size:.95rem;line-height:1.4}.gallery small{display:block;color:#5d6f62;font-size:.85rem;margin-top:2px}
+.zoom{padding:0;border:0;background:none;max-width:calc(100% - 24px);max-height:calc(100% - 24px);overflow:visible}
+.zoom::backdrop{background:rgba(31,42,36,.85)}
+.zoom img{display:block;max-width:min(1400px,calc(100vw - 24px));max-height:calc(100dvh - 24px);width:auto;height:auto;border-radius:12px;cursor:zoom-out}
+.zoom .modal-x{position:absolute;top:10px;right:10px;background:var(--white)}
 .book{background:var(--white);border-radius:32px;padding:40px 28px}
 .clocks{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 28px;padding:0;list-style:none}
 .clocks li{background:var(--mist);border-radius:12px;padding:10px 16px;min-width:130px}
@@ -80,7 +87,7 @@ details p{margin:.5em 0}
 @media(prefers-reduced-motion:reduce){.clocks i{animation:none}}
 .modal{width:min(820px,calc(100% - 24px));max-height:calc(100% - 24px);padding:0;border:0;border-radius:32px;background:var(--white);color:var(--ink);overflow:auto;overscroll-behavior:contain}
 .modal::backdrop{background:rgba(31,42,36,.6)}
-html:has(.modal[open]){overflow:hidden}
+html:has(.modal[open],.zoom[open]){overflow:hidden}
 .modal-bar{position:sticky;top:0;z-index:1;display:flex;justify-content:flex-end;align-items:center;gap:16px;padding:14px 18px;background:var(--white);font-size:.9rem}
 .modal-x{display:grid;place-items:center;width:40px;height:40px;border:1.5px solid var(--sage);border-radius:50%;background:none;color:var(--moss);font-size:1.5rem;line-height:1;cursor:pointer}
 .modal-x:hover{background:var(--mist)}
@@ -166,9 +173,8 @@ html:has(.modal[open]){overflow:hidden}
 <section id="diplomy" style="padding-top:0"><div class="wrap">
   <h2>Образование и сертификаты</h2>
   <div class="gallery">
-    <figure>Здесь будет диплом</figure>
-    <figure>Здесь будет сертификат</figure>
-    <figure>Здесь будет сертификат</figure>
+    <a href="diplom-1.jpg" data-zoom><img src="diplom-1-900.jpg" width="900" height="655" loading="lazy" alt="Диплом о профессиональной переподготовке по программе «Психолог-консультант со специализацией в контекстуально-поведенческом подходе»"><span>Диплом о профессиональной переподготовке<small>Академия современной психологии, 2026</small></span></a>
+    <a href="diplom-2.jpg" data-zoom><img src="diplom-2-900.jpg" width="900" height="655" loading="lazy" alt="Приложение к диплому: перечень дисциплин, 600 академических часов"><span>Приложение к диплому<small>Дисциплины и часы · 600 ак. часов</small></span></a>
   </div>
 </div></section>
 
@@ -212,6 +218,11 @@ html:has(.modal[open]){overflow:hidden}
   <div class="modal-end"><button class="btn modal-close" type="button">Закрыть</button></div>
 </dialog>
 
+<dialog class="zoom" id="zoom" aria-label="Документ">
+  <button class="modal-x" type="button" aria-label="Закрыть">&times;</button>
+  <img alt="">
+</dialog>
+
 <script>
 function tick(){var d=new Date();document.querySelectorAll('[data-tz]').forEach(function(e){
   var h='',m='';new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZone:e.dataset.tz}).formatToParts(d).forEach(function(x){if(x.type==='hour')h=x.value;if(x.type==='minute')m=x.value});
@@ -239,6 +250,12 @@ document.querySelectorAll('a[data-modal]').forEach(function(a){a.addEventListene
   .catch(function(){delete docs[u];location.href=u})})});
 dlg.querySelectorAll('.modal-x,.modal-close').forEach(function(b){b.addEventListener('click',function(){dlg.close()})});
 dlg.addEventListener('click',function(ev){if(ev.target===dlg)dlg.close()});
+// Дипломы открываются крупно поверх страницы; без JS ссылка просто ведёт на картинку
+var zoom=document.getElementById('zoom'),zimg=zoom.querySelector('img');
+document.querySelectorAll('a[data-zoom]').forEach(function(a){a.addEventListener('click',function(ev){
+  if(ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.altKey||!zoom.showModal)return;
+  ev.preventDefault();zimg.src=a.getAttribute('href');zimg.alt=a.querySelector('img').alt;zoom.showModal()})});
+zoom.addEventListener('click',function(){zoom.close()});
 </script>
 </body>
 </html>
