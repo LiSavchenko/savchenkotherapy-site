@@ -77,6 +77,21 @@ details p{margin:.5em 0}
 .clocks i{font-style:normal;animation:bl 1s steps(1) infinite}
 @keyframes bl{50%{opacity:0}}
 @media(prefers-reduced-motion:reduce){.clocks i{animation:none}}
+.modal{width:min(820px,calc(100% - 24px));max-height:calc(100% - 24px);padding:0;border:0;border-radius:32px;background:var(--white);color:var(--ink);overflow:auto;overscroll-behavior:contain}
+.modal::backdrop{background:rgba(31,42,36,.6)}
+html:has(.modal[open]){overflow:hidden}
+.modal-bar{position:sticky;top:0;z-index:1;display:flex;justify-content:flex-end;align-items:center;gap:16px;padding:14px 18px;background:var(--white);font-size:.9rem}
+.modal-x{display:grid;place-items:center;width:40px;height:40px;border:1.5px solid var(--sage);border-radius:50%;background:none;color:var(--moss);font-size:1.5rem;line-height:1;cursor:pointer}
+.modal-x:hover{background:var(--mist)}
+.modal .doc{padding:0 32px 40px;max-width:none}
+/* Текст документа: те же правила, что в informed-consent.html */
+.doc h1{font-size:clamp(1.8rem,5vw,2.4rem)}
+.doc h2{font-size:1.2rem;margin:1.8em 0 .4em;padding-left:14px;border-left:4px solid var(--sage)}
+.doc p{margin:.6em 0}
+.doc .num{font-family:Lora,Georgia,serif;font-size:1.2rem;font-weight:600;color:var(--moss);font-variant-numeric:tabular-nums}
+.doc .warn{font-weight:500;text-decoration:underline;text-decoration-color:var(--sand);text-decoration-thickness:3px;text-underline-offset:3px}
+.modal-end{padding:0 32px 36px}
+@media(max-width:720px){.modal{width:100%;max-width:100%;height:100%;max-height:100%;height:100dvh;max-height:100dvh;margin:0;border-radius:0}.modal .doc{padding:0 20px 20px}.modal-end{padding:0 20px 28px}.modal-end .btn{width:100%;text-align:center}}
 @media(max-width:720px){.hero-in{grid-template-columns:1fr}.hp{max-width:240px}}
 @media(max-width:720px){.about{grid-template-columns:1fr}.photo{max-width:220px}.topics{grid-template-columns:1fr}nav a:not(.tg){display:none}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -143,7 +158,7 @@ details p{margin:.5em 0}
   <p><b>35 $</b> &nbsp;·&nbsp; <b>2 800 ₽</b> &nbsp;·&nbsp; <b>400 000 сум</b></p>
   <div class="btns">
     <a class="btn" href="#zapis">Записаться</a>
-    <a class="btn alt" href="informed-consent.pdf" target="_blank" rel="noopener">Информированное согласие</a>
+    <a class="btn alt" href="informed-consent.html" data-modal>Информированное согласие</a>
   </div>
 </div></div></section>
 
@@ -164,7 +179,7 @@ details p{margin:.5em 0}
 <section id="zapis" style="padding-top:0"><div class="wrap"><div class="book">
   <h2>Записаться</h2>
   <p>Перед записью можно ознакомиться с условиями работы:</p>
-  <a class="btn line" href="informed-consent.pdf" target="_blank" rel="noopener">Информированное согласие</a>
+  <a class="btn line" href="informed-consent.html" data-modal>Информированное согласие</a>
   <ul class="clocks" aria-label="Текущее время">
     <li><b data-tz="Asia/Tashkent">--:--</b><span>Ташкент</span></li>
     <li><b data-tz="Europe/Moscow">--:--</b><span>Москва</span></li>
@@ -192,6 +207,15 @@ details p{margin:.5em 0}
   <p>Консультация психолога не заменяет медицинскую помощь. В остром кризисе обратитесь к врачу или в экстренные службы.</p>
 </div></footer>
 
+<dialog class="modal" id="doc-modal" aria-labelledby="doc-modal-title">
+  <div class="modal-bar">
+    <a class="modal-page" href="informed-consent.html" target="_blank" rel="noopener">Открыть отдельной страницей</a>
+    <button class="modal-x" type="button" aria-label="Закрыть">&times;</button>
+  </div>
+  <div id="doc-body"></div>
+  <div class="modal-end"><button class="btn modal-close" type="button">Закрыть</button></div>
+</dialog>
+
 <script>
 function tick(){var d=new Date();document.querySelectorAll('[data-tz]').forEach(function(e){
   var h='',m='';new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZone:e.dataset.tz}).formatToParts(d).forEach(function(x){if(x.type==='hour')h=x.value;if(x.type==='minute')m=x.value});
@@ -206,6 +230,19 @@ document.getElementById('f').addEventListener('submit',function(ev){
   fetch(u,{method:'POST',headers:{'Accept':'application/json'},body:new FormData(f)})
   .then(function(r){if(!r.ok)throw 0;f.reset();m.textContent='Спасибо! Я свяжусь с вами в ближайшее время.'})
   .catch(function(){m.textContent='Не удалось отправить. Напишите мне в Telegram.'})});
+// Документы по ссылкам с data-modal открываются поверх страницы; без JS или при ошибке загрузки работает обычный переход
+var dlg=document.getElementById('doc-modal'),docs={};
+document.querySelectorAll('a[data-modal]').forEach(function(a){a.addEventListener('click',function(ev){
+  if(ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.altKey||!dlg.showModal)return;
+  ev.preventDefault();var u=a.getAttribute('href');
+  (docs[u]||(docs[u]=fetch(u).then(function(r){if(!r.ok)throw 0;return r.text()})))
+  .then(function(t){var d=new DOMParser().parseFromString(t,'text/html').querySelector('.doc');if(!d)throw 0;
+    var h=d.querySelector('h1');if(h)h.id='doc-modal-title';
+    document.getElementById('doc-body').replaceChildren(d);dlg.querySelector('.modal-page').href=u;
+    dlg.showModal();dlg.scrollTop=0})
+  .catch(function(){delete docs[u];location.href=u})})});
+dlg.querySelectorAll('.modal-x,.modal-close').forEach(function(b){b.addEventListener('click',function(){dlg.close()})});
+dlg.addEventListener('click',function(ev){if(ev.target===dlg)dlg.close()});
 </script>
 </body>
 </html>
