@@ -1,0 +1,11 @@
+# Для Apache. Если сервер на nginx, этот файл игнорируется — правила для nginx в README.
+
+# Служебные файлы и папки из репозитория не должны открываться по ссылке
+RedirectMatch 404 /\.(git|claude)(/|$)
+RedirectMatch 404 /(README\.md|_headers|\.DS_Store)$
+
+<IfModule mod_headers.c>
+  <FilesMatch "^informed-consent\.(html|pdf)$">
+    Header set X-Robots-Tag "noindex, nofollow"
+  </FilesMatch>
+</IfModule>

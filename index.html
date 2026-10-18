@@ -61,6 +61,7 @@ section{padding:48px 0 20px}
 .clocks span{font-size:.85rem;color:#44544a}
 form{display:grid;gap:16px;max-width:520px}
 label{display:grid;gap:6px;font-weight:500}
+.trap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 input[type=text]{font:inherit;padding:12px 14px;border:1.5px solid var(--sage);border-radius:10px;background:var(--white)}
 .consent{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:.9rem}
 .consent input{margin-top:5px;width:18px;height:18px;flex:none}
@@ -196,9 +197,10 @@ html:has(.modal[open],.zoom[open]){overflow:hidden}
     <li><b data-tz="Europe/Moscow">--:--</b><span>Москва</span></li>
     <li><b data-tz="Europe/Berlin">--:--</b><span id="cetl">Центральноевропейское время</span></li>
   </ul>
-  <form id="f" data-endpoint="ВСТАВИТЬ_АДРЕС_ФОРМЫ">
+  <form id="f" data-endpoint="/api/lead.php">
     <label>Как я могу к вам обращаться<input type="text" name="name" required autocomplete="given-name"></label>
     <label>Как с вами связаться (Telegram, WhatsApp или email)<input type="text" name="contact" placeholder="например, @username или адрес почты" required></label>
+    <label class="trap" aria-hidden="true">Не заполняйте это поле<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
     <label class="consent"><input type="checkbox" name="consent" required>
       <span>Даю <a href="consent.html" target="_blank" rel="noopener">согласие на обработку персональных данных</a> на условиях <a href="privacy.html" target="_blank" rel="noopener">политики конфиденциальности</a>.</span></label>
     <button class="btn" type="submit">Отправить заявку</button>
